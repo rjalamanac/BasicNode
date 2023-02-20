@@ -1,11 +1,15 @@
 import { createClient } from 'redis';
 import { v4 as uuidv4 } from 'uuid';
 
-const client = createClient({
-  url: 'redis://default:123pass@localhost:5000'
-});
+let client = null;
 
-await client.connect();
+export async function loadClient() {
+  client = createClient({
+    url: 'redis://default:123pass@localhost:5000'
+  });
+
+  client.connect();
+}
 
 
 export async function getCars() {

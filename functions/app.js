@@ -1,21 +1,22 @@
 import express from 'express';
 import cors from 'cors';
-import { getCars, getCarByID, getCarByNumBastidor, insertCar, deleteCar, modifyCar } from './cars.service.js';
+import serverless from 'serverless-http';
+import { getCars, getCarByID, getCarByNumBastidor, insertCar, deleteCar, modifyCar, loadClient } from './cars_service.js';
 import bodyParser from 'body-parser';
 
 const app = express();
-const port = 42069;
+const router = express.Router();
 
 app.use(cors());
 // Configuring body parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/cars', async (req, res) => {
+router.get('/cars', async (req, res) => {
   res.status(200).json(await getCars());
 });
 
-app.get('/cars/:id', async (req, res) => {
+router.get('/cars/:id', async (req, res) => {
   const id = req.params.id;
 
   const car = await getCarByID(id);
@@ -28,7 +29,7 @@ app.get('/cars/:id', async (req, res) => {
   res.status(404).send('Car not found');
 });
 
-app.post('/cars', async (req, res) => {
+router.post('/cars', async (req, res) => {
   const car = req.body;
 
   const carsDatabase = await getCarByNumBastidor(car.numBastidor);
@@ -46,7 +47,7 @@ app.post('/cars', async (req, res) => {
   res.status(400).send('Failure while creating the car');
 });
 
-app.delete('/cars/:id', async (req, res) => {
+router.delete('/cars/:id', async (req, res) => {
   const id = req.params.id;
 
   if (await deleteCar(id)) {
@@ -57,7 +58,7 @@ app.delete('/cars/:id', async (req, res) => {
   res.status(404).send('Car not found');
 });
 
-app.put('/cars/:id', async (req, res) => {
+router.put('/cars/:id', async (req, res) => {
   const id = req.params.id;
   const newCar = req.body;
 
@@ -81,4 +82,5 @@ app.put('/cars/:id', async (req, res) => {
   res.status(404).send('Car not found');
 });
 
-app.listen(port, () => console.log(`API Rest starts at ${port}!`));
+app.use('/.netlify/functions/app', router);
+export default serverless(app);
